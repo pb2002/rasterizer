@@ -13,16 +13,18 @@ out vec3 fragPos;
 out vec2 uv;		
 out mat3 TBN;
 
+uniform mat4 projection;
 uniform mat4 view;
 uniform mat4 model;
+
 // vertex shader
 void main()
 {
 	// transform vertex using supplied matrix
-	gl_Position = view * model * vec4(vPosition, 1.0);
-	fragPos = vPosition;
+	gl_Position = projection * view * model * vec4(vPosition, 1.0);
+	fragPos = vec3(model) * vPosition;
 	
-	mat3 modelVector = transpose(inverse(mat3(model)));
+	mat3 modelVector = mat3(model);
 	normal = normalize(modelVector * vNormal);
 	uv = vUV;
 

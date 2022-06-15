@@ -34,11 +34,14 @@ namespace Template
             return Matrix4.CreatePerspectiveFieldOfView(Fov, (float) ScreenWidth / ScreenHeight, Near, Far);
         }
 
+        public Vector3 ViewDirection => (Matrix4.CreateFromQuaternion(Transform.Rotation) * new Vector4(-Vector3.UnitZ, 0)).Xyz;
+        public Vector3 Right => Vector3.Cross(ViewDirection, Vector3.UnitY).Normalized();
         public Matrix4 GetCameraMatrix()
         {
             var t = Matrix4.CreateTranslation(-Transform.Position);
             var r = Matrix4.CreateFromQuaternion(Transform.Rotation);
             return t * r;
         }
+        
     }
 }

@@ -89,41 +89,15 @@ namespace Template
 		}
 
 		// render the mesh using the supplied shader and matrix
-		public void Render( Shader shader, Matrix4 model, Matrix4 view, Texture texture, Texture specularMap, Texture normalMap )
+		public void Render( Shader shader, Matrix4 model, Material material )
 		{
 			// on first run, prepare buffers
 			Prepare( shader );
-			
-			// enable shader
-			GL.UseProgram(shader.ProgramId);
 
-			// enable textures
-			int texLoc = GL.GetUniformLocation( shader.ProgramId, "texAlbedo" );
-			GL.Uniform1( texLoc, 0 );
-			
-			int specLoc = GL.GetUniformLocation(shader.ProgramId, "texSpecular");
-			GL.Uniform1( specLoc, 1 );
-
-			int normLoc = GL.GetUniformLocation(shader.ProgramId, "texNormal");
-			GL.Uniform1( normLoc, 2);
-
-			GL.ActiveTexture(TextureUnit.Texture0);
-			GL.BindTexture(TextureTarget.Texture2D, texture.Id);
-
-			GL.ActiveTexture(TextureUnit.Texture1);
-			GL.BindTexture(TextureTarget.Texture2D, specularMap.Id);
-			
-			GL.ActiveTexture(TextureUnit.Texture2);
-			GL.BindTexture(TextureTarget.Texture2D, normalMap.Id);
-			
 			// pass uniforms to vertex shader
 			shader.SetUniformMatrix4("model", model);
-
-			shader.SetUniformMatrix4("view", view);
-
-			shader.SetUniformVector3("lightDir", Vector3.Normalize(new Vector3(1, -1, -0.5f)));
-
-			shader.SetUniformVector3("cameraPos", Camera.Instance.Transform.Position);
+			shader.SetUniformMatrix4("view", Camera.Instance.GetCameraMatrix());
+			shader.SetUniformMatrix4("projection", Camera.Instance.GetProjectionMatrix());
 			
 			// bind interleaved vertex data
 			GL.BindBuffer(BufferTarget.ArrayBuffer, _vertexBufferId);

@@ -6,9 +6,16 @@ in vec3 normal;			// interpolated normal
 in vec3 fragPos;
 in mat3 TBN;
 
-uniform sampler2D texAlbedo;	// texture sampler
-uniform sampler2D texSpecular;
-uniform sampler2D texNormal;
+struct Material {
+    sampler2D albedoMap;
+    sampler2D normalMap;
+    sampler2D specularMap;        
+    
+    vec3 color;
+    float roughness;
+};
+
+uniform Material material;
 uniform vec3 lightDir;
 uniform vec3 cameraPos;
 
@@ -17,23 +24,22 @@ out vec4 outputColor;
 
 // fragment shader
 void main()
-{
-    // vec3 n = normalize(normal);   
-    float specFactor = texture(texSpecular, uv).x;
+{   
+    vec3 viewDir = normalize(fragPos - cameraPos);
      
-    vec3 n = texture(texNormal, uv).rgb;
-    
+    vec3 n = texture(material.normalMap, uv).rgb;
     n = n * 2.0 - 1.0;
     n = normalize(TBN * n);
 
-    vec3 color = texture( texAlbedo, uv ).rgb;
+    vec3 color = texture( material.albedoMap, uv ).rgb * material.color;
+
     vec3 diffuse = max(0, -dot(n, lightDir)) * color * 2;
     
-    vec3 viewDir = normalize(fragPos - cameraPos);
+    float specFactor = texture(material.specularMap, uv).x;
     vec3 refl = reflect(lightDir, n);
     float rdv = max(0, -dot(refl, viewDir));
 
-    vec3 specular = pow(rdv, 64) * (1-specFactor) * vec3(6f);
+    vec3 specular = pow(rdv, 24) * specFactor * (1-material.roughness) * vec3(6f);
 
     vec3 ambient = vec3(0.07, 0.12, 0.15) * color;
     outputColor = vec4(ambient + diffuse + specular, 1.0);
