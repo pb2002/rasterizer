@@ -16,7 +16,7 @@ namespace Template
 		Texture _wood, _woodSpecular, _woodNormal; // textures to use for rendering
 		RenderTarget _target;                      // intermediate render target
 		ScreenQuad _quad;                          // screen filling quad for post processing
-		bool _useRenderTarget = false;
+		bool _useRenderTarget = true;
 
 		private Mesh _mesh, _floor;
 		// initialize

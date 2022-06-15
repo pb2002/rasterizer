@@ -1,7 +1,7 @@
 ﻿using System;
 using System.IO;
 using OpenTK;
-using OpenTK.Graphics.OpenGL;
+using OpenTK.Graphics.OpenGL4;
 
 namespace Template
 {
@@ -24,7 +24,7 @@ namespace Template
 			Load( fragmentShader, ShaderType.FragmentShader, ProgramId, out FsId );
 			GL.LinkProgram( ProgramId );
 			Console.WriteLine( GL.GetProgramInfoLog( ProgramId ) );
-
+			
 			// get locations of shader parameters
 			AttributeVpos = GL.GetAttribLocation( ProgramId, "vPosition" );
 			AttributeVnrm = GL.GetAttribLocation( ProgramId, "vNormal" );
@@ -69,7 +69,10 @@ namespace Template
 		{
 			// source: http://neokabuto.blogspot.nl/2013/03/opentk-tutorial-2-drawing-triangle.html
 			id = GL.CreateShader( type );
-			using( StreamReader sr = new StreamReader( filename ) ) GL.ShaderSource( id, sr.ReadToEnd() );
+			using (StreamReader sr = new StreamReader(filename))
+			{
+				GL.ShaderSource( id, sr.ReadToEnd() );
+			}
 			GL.CompileShader( id );
 			GL.AttachShader( program, id );
 			Console.WriteLine( GL.GetShaderInfoLog( id ) );

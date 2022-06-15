@@ -1,16 +1,18 @@
-﻿	#version 330
+﻿#version 330
  
 // shader input
-in vec3 vPosition;		// untransformed vertex position
-in vec3 vNormal;		// untransformed vertex normal
-in vec2 vUV;			// vertex uv coordinate
-in vec3 vTangent;
-in vec3 vBitangent;
+layout( location = 0 ) in vec3 vPosition;		// untransformed vertex position
+layout( location = 1 ) in vec3 vNormal;		// untransformed vertex normal
+layout( location = 2 ) in vec2 vUV;			// vertex uv coordinate
+layout( location = 3 ) in vec3 vTangent;
+layout( location = 4 ) in vec3 vBitangent;
 
 // shader output
 out vec3 normal;		// transformed vertex normal
+out vec3 fragPos;
 out vec2 uv;		
 out mat3 TBN;
+
 uniform mat4 view;
 uniform mat4 model;
 // vertex shader
@@ -18,7 +20,7 @@ void main()
 {
 	// transform vertex using supplied matrix
 	gl_Position = view * model * vec4(vPosition, 1.0);
-	
+	fragPos = vPosition;
 	
 	mat3 modelVector = transpose(inverse(mat3(model)));
 	normal = normalize(modelVector * vNormal);
