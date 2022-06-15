@@ -1,0 +1,12 @@
+D:\dev\rasterizer\bin\Debug\OpenTK.dll
+D:\dev\rasterizer\bin\Debug\OpenTK.pdb
+D:\dev\rasterizer\bin\Debug\OpenTK.xml
+D:\dev\rasterizer\obj\Debug\Template.csproj.AssemblyReference.cache
+D:\dev\rasterizer\obj\Debug\Template.csproj.SuggestedBindingRedirects.cache
+D:\dev\rasterizer\obj\Debug\Template.csproj.CoreCompileInputs.cache
+D:\dev\rasterizer\obj\Debug\Template.csproj.CopyComplete
+D:\dev\rasterizer\bin\Debug\Template.exe.config
+D:\dev\rasterizer\bin\Debug\Template.exe
+D:\dev\rasterizer\bin\Debug\Template.pdb
+D:\dev\rasterizer\obj\Debug\Template.exe
+D:\dev\rasterizer\obj\Debug\Template.pdb

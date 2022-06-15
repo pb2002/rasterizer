@@ -17,6 +17,8 @@ namespace Template
         public Mesh ObjectMesh;
 
         public Texture MainTexture;
+        public Texture SpecularTexture;
+        public Texture NormalTexture;
 
         public virtual void Update()
         {
@@ -26,11 +28,13 @@ namespace Template
             }   
         }
 
-        public Object3D(Transform transform, Mesh objectMesh, Texture mainTexture)
+        public Object3D(Transform transform, Mesh objectMesh, Texture mainTexture, Texture specularTexture, Texture normalTexture)
         {
             Transform = transform;
             ObjectMesh = objectMesh;
             MainTexture = mainTexture;
+            NormalTexture = normalTexture;
+            SpecularTexture = specularTexture;
         }
 
         public Object3D[] GetChildren()
@@ -46,7 +50,7 @@ namespace Template
         public virtual void Render(Shader shader)
         {
             var cm = Camera.Instance.GetCameraMatrix();
-            ObjectMesh?.Render(shader, WorldMatrix * Camera.Instance.GetCameraMatrix() * Camera.Instance.GetProjectionMatrix(), MainTexture);
+            ObjectMesh?.Render(shader, WorldMatrix, Camera.Instance.GetCameraMatrix() * Camera.Instance.GetProjectionMatrix(), MainTexture, SpecularTexture, NormalTexture);
             foreach (var c in _children)
             {            
                 c.Render(shader);

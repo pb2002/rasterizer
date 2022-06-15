@@ -3,6 +3,7 @@ using System.Drawing;
 using System.Globalization;
 using System.Threading;
 using OpenTK;
+using OpenTK.Graphics;
 using OpenTK.Graphics.OpenGL;
 
 // The template provides you with a window which displays a 'linear frame buffer', i.e.
@@ -28,16 +29,18 @@ namespace Template
 		static int _screenId;            // unique integer identifier of the OpenGL texture
 		static MyApplication _app;       // instance of the application
 		static bool _terminated = false; // application terminates gracefully when this is true
-		protected override void OnLoad( EventArgs e )
+
+		public OpenTkApp() : base(1600, 900, new GraphicsMode(32, 24, 8, 8)) { }
+        protected override void OnLoad( EventArgs e )
 		{
 			// called during application initialization
 			GL.ClearColor( Color.Black );
 			GL.Enable( EnableCap.Texture2D );
 			GL.Disable( EnableCap.DepthTest );
-			GL.Hint( HintTarget.PerspectiveCorrectionHint, HintMode.Nicest );
-			ClientSize = new Size( 512, 512 );
+			GL.Hint( HintTarget.PerspectiveCorrectionHint, HintMode.Nicest );			
+			ClientSize = new Size( 1600, 900 );
 			_app = new MyApplication();
-			_app.Screen = new Surface( Width, Height );
+			_app.Screen = new Surface( Width, Height );			
 			Sprite.Target = _app.Screen;
 			_screenId = _app.Screen.GenTexture();
 			_app.Init();
@@ -75,6 +78,7 @@ namespace Template
 			GL.ClearColor( Color.Black );
 			GL.Enable( EnableCap.Texture2D );
 			GL.Disable( EnableCap.DepthTest );
+			GL.Disable(EnableCap.Multisample);
 			GL.Color3( 1.0f, 1.0f, 1.0f );
 			GL.BindTexture( TextureTarget.Texture2D, _screenId );
 			GL.TexImage2D( TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba,
@@ -93,10 +97,13 @@ namespace Template
 			GL.TexCoord2( 1.0f, 0.0f ); GL.Vertex2( 1.0f, 1.0f );
 			GL.TexCoord2( 0.0f, 0.0f ); GL.Vertex2( -1.0f, 1.0f );
 			GL.End();
+
 			// prepare for generic OpenGL rendering
 			GL.Enable( EnableCap.DepthTest );
+			GL.Enable( EnableCap.Multisample );
 			GL.Clear( ClearBufferMask.DepthBufferBit );
 			GL.Disable( EnableCap.Texture2D );
+			
 			// do OpenGL rendering
 			_app.RenderGL();
 			// swap buffers

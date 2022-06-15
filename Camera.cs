@@ -38,8 +38,7 @@ namespace Template
         {
             var t = Matrix4.CreateTranslation(-Transform.Position);
             var r = Matrix4.CreateFromQuaternion(Transform.Rotation);
-            var result = t * r;
-            return result;
+            return t * r;
         }
     }
 }

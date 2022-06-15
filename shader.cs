@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using OpenTK;
 using OpenTK.Graphics.OpenGL;
 
 namespace Template
@@ -11,8 +12,8 @@ namespace Template
 		public int AttributeVpos;
 		public int AttributeVnrm;
 		public int AttributeVuvs;
-		public int UniformMview;
-		public int UniformLightDir;
+		public int AttributeVtng;
+		public int AttributeVbtg;
 
 		// constructor
 		public Shader( string vertexShader, string fragmentShader )
@@ -28,12 +29,43 @@ namespace Template
 			AttributeVpos = GL.GetAttribLocation( ProgramId, "vPosition" );
 			AttributeVnrm = GL.GetAttribLocation( ProgramId, "vNormal" );
 			AttributeVuvs = GL.GetAttribLocation( ProgramId, "vUV" );
-			UniformMview = GL.GetUniformLocation( ProgramId, "transform" );
-			UniformLightDir = GL.GetUniformLocation( ProgramId, "lightDir" );
+			AttributeVtng = GL.GetAttribLocation( ProgramId, "vTangent");
+			AttributeVbtg = GL.GetAttribLocation( ProgramId, "vBitangent");
 		}
 
-		// loading shaders
-		void Load( String filename, ShaderType type, int program, out int id )
+		public void SetUniformFloat(string name, float value)
+        {
+			var loc = GL.GetUniformLocation(ProgramId, name);
+			GL.ProgramUniform1(ProgramId, loc, value);
+		}
+		public void SetUniformInt(string name, int value)
+		{
+			var loc = GL.GetUniformLocation(ProgramId, name);
+			GL.ProgramUniform1(ProgramId, loc, value);
+		}		
+		public void SetUniformVector2(string name, Vector2 value)
+		{
+			var loc = GL.GetUniformLocation(ProgramId, name);
+			GL.ProgramUniform2(ProgramId, loc, value);
+		}
+		public void SetUniformVector3(string name, Vector3 value)
+		{
+			var loc = GL.GetUniformLocation(ProgramId, name);
+			GL.ProgramUniform3(ProgramId, loc, value);
+		}
+		public void SetUniformVector4(string name, Vector4 value)
+        {
+			var loc = GL.GetUniformLocation(ProgramId, name);
+			GL.ProgramUniform4(ProgramId, loc, value);
+		}
+		public void SetUniformMatrix4(string name, Matrix4 value)
+        {
+            var loc = GL.GetUniformLocation(ProgramId, name);
+			GL.ProgramUniformMatrix4(ProgramId, loc, false, ref value);
+		}
+
+        // loading shaders
+        void Load( String filename, ShaderType type, int program, out int id )
 		{
 			// source: http://neokabuto.blogspot.nl/2013/03/opentk-tutorial-2-drawing-triangle.html
 			id = GL.CreateShader( type );

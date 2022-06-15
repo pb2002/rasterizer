@@ -22,6 +22,48 @@ namespace Template
 		{
 			MeshLoader loader = new MeshLoader();
 			loader.Load( this, fileName );
+
+			// https://www.youtube.com/watch?v=hOLLh80hDmw&ab_channel=BrianWill
+			// calculate tangent and bitangent vectors (used for normal mapping)
+			foreach (var t in Triangles)
+            {
+				Vector3 tangent, bitangent;
+				
+				ObjVertex v1 = Vertices[t.Index0];
+				ObjVertex v2 = Vertices[t.Index1];
+				ObjVertex v3 = Vertices[t.Index2];
+
+
+				//  \[T]/  DARK MAGIC, DO NOT EDIT  \[T]/  -------------------------
+
+				Vector3 edge1 = v2.Vertex - v1.Vertex;
+				Vector3 edge2 = v3.Vertex - v1.Vertex;
+
+				Vector2 deltaUV1 = v2.TexCoord - v1.TexCoord;
+				Vector2 deltaUV2 = v3.TexCoord - v1.TexCoord;
+
+				float f = 1f / (deltaUV1.X * deltaUV2.Y - deltaUV2.X * deltaUV1.Y);
+
+				tangent.X = f * (deltaUV2.Y * edge1.X - deltaUV1.Y * edge2.X);
+				tangent.Y = f * (deltaUV2.Y * edge1.Y - deltaUV1.Y * edge2.Y);
+				tangent.Z = f * (deltaUV2.Y * edge1.Z - deltaUV1.Y * edge2.Z);
+				tangent.Normalize();
+
+				bitangent.X = f * (-deltaUV2.X * edge1.X + deltaUV1.X * edge2.X);
+				bitangent.Y = f * (-deltaUV2.X * edge1.Y + deltaUV1.X * edge2.Y);
+				bitangent.Z = f * (-deltaUV2.X * edge1.Z + deltaUV1.X * edge2.Z);
+				bitangent.Normalize();
+				
+				// -----------------------------------------------------------------
+
+				Vertices[t.Index0].Tangent = tangent;
+				Vertices[t.Index1].Tangent = tangent;
+				Vertices[t.Index2].Tangent = tangent;
+
+				Vertices[t.Index0].Bitangent = bitangent;
+				Vertices[t.Index1].Bitangent = bitangent;
+				Vertices[t.Index2].Bitangent = bitangent;
+			}
 		}
 
 		// initialization; called during first render
@@ -47,42 +89,64 @@ namespace Template
 		}
 
 		// render the mesh using the supplied shader and matrix
-		public void Render( Shader shader, Matrix4 transform, Texture texture )
+		public void Render( Shader shader, Matrix4 model, Matrix4 view, Texture texture, Texture specularMap, Texture normalMap )
 		{
 			// on first run, prepare buffers
 			Prepare( shader );
 
-			// safety dance
+			// safety dance    \[T]/
 			GL.PushClientAttrib( ClientAttribMask.ClientVertexArrayBit );
 
-			// enable texture
-			int texLoc = GL.GetUniformLocation( shader.ProgramId, "pixels" );
-			GL.Uniform1( texLoc, 0 );
-			GL.ActiveTexture( TextureUnit.Texture0 );
-			GL.BindTexture( TextureTarget.Texture2D, texture.Id );
-
 			// enable shader
-			GL.UseProgram( shader.ProgramId );
+			GL.UseProgram(shader.ProgramId);
 
-			// pass transform to vertex shader
-			GL.UniformMatrix4( shader.UniformMview, false, ref transform );
+			// enable textures
+			int texLoc = GL.GetUniformLocation( shader.ProgramId, "texAlbedo" );
+			GL.Uniform1( texLoc, 0 );
 			
-			GL.Uniform3(shader.UniformLightDir, Vector3.Normalize(new Vector3(1, -1, -0.5f)));
+			int specLoc = GL.GetUniformLocation(shader.ProgramId, "texSpecular");
+			GL.Uniform1( specLoc, 1 );
+
+			int normLoc = GL.GetUniformLocation(shader.ProgramId, "texNormal");
+			GL.Uniform1(normLoc, 2);
+
+			GL.ActiveTexture(TextureUnit.Texture0);
+			GL.BindTexture(TextureTarget.Texture2D, texture.Id);
+
+			GL.ActiveTexture(TextureUnit.Texture1);
+			GL.BindTexture(TextureTarget.Texture2D, specularMap.Id);
+
+			// pass uniforms to vertex shader
+			shader.SetUniformMatrix4("model", model);
+
+			shader.SetUniformMatrix4("view", view);
+
+			shader.SetUniformVector3("lightDir", Vector3.Normalize(new Vector3(1, -1, -0.5f)));
+
+			shader.SetUniformVector3("cameraPos", Camera.Instance.Transform.Position);						
 
 			// enable position, normal and uv attributes
-			GL.EnableVertexAttribArray( shader.AttributeVpos );
-			GL.EnableVertexAttribArray( shader.AttributeVnrm );
-			GL.EnableVertexAttribArray( shader.AttributeVuvs );
+			
 
 			// bind interleaved vertex data
 			GL.EnableClientState( ArrayCap.VertexArray );
-			GL.BindBuffer( BufferTarget.ArrayBuffer, _vertexBufferId );
-			GL.InterleavedArrays( InterleavedArrayFormat.T2fN3fV3f, Marshal.SizeOf( typeof( ObjVertex ) ), IntPtr.Zero );
+			GL.BindBuffer(BufferTarget.ArrayBuffer, _vertexBufferId);
+
+			GL.EnableVertexAttribArray(shader.AttributeVpos);			
+			GL.VertexAttribPointer(shader.AttributeVpos, 3, VertexAttribPointerType.Float, false, 56, 0);
+
+			GL.EnableVertexAttribArray(shader.AttributeVnrm);
+			GL.VertexAttribPointer(shader.AttributeVnrm, 3, VertexAttribPointerType.Float, true, 56, 12);
 
 			// link vertex attributes to shader parameters 
-			GL.VertexAttribPointer( shader.AttributeVuvs, 2, VertexAttribPointerType.Float, false, 32, 0 );
-			GL.VertexAttribPointer( shader.AttributeVnrm, 3, VertexAttribPointerType.Float, true, 32, 2 * 4 );
-			GL.VertexAttribPointer( shader.AttributeVpos, 3, VertexAttribPointerType.Float, false, 32, 5 * 4 );
+			GL.EnableVertexAttribArray(shader.AttributeVuvs);
+			GL.VertexAttribPointer(shader.AttributeVuvs, 2, VertexAttribPointerType.Float, false, 56, 24);
+
+			GL.EnableVertexAttribArray(shader.AttributeVtng);
+			GL.VertexAttribPointer(shader.AttributeVtng, 3, VertexAttribPointerType.Float, false, 56, 32);
+
+			GL.EnableVertexAttribArray(shader.AttributeVbtg);
+			GL.VertexAttribPointer(shader.AttributeVbtg, 3, VertexAttribPointerType.Float, false, 56, 44);
 
 			// bind triangle index data and render
 			GL.BindBuffer( BufferTarget.ElementArrayBuffer, _triangleBufferId );
@@ -97,16 +161,18 @@ namespace Template
 
 			// restore previous OpenGL state
 			GL.UseProgram( 0 );
-			GL.PopClientAttrib();
+			GL.PopClientAttrib();   //   \[T]/
 		}
 
 		// layout of a single vertex
 		[StructLayout( LayoutKind.Sequential )]
 		public struct ObjVertex
 		{
-			public Vector2 TexCoord;
-			public Vector3 Normal;
 			public Vector3 Vertex;
+			public Vector3 Normal;
+			public Vector2 TexCoord;		
+			public Vector3 Tangent;
+			public Vector3 Bitangent;			
 		}
 
 		// layout of a single triangle
