@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Runtime.InteropServices;
 using OpenTK;
-using OpenTK.Graphics.OpenGL;
+using OpenTK.Graphics.OpenGL4;
 
 namespace Template
 {
@@ -89,47 +89,17 @@ namespace Template
 		}
 
 		// render the mesh using the supplied shader and matrix
-		public void Render( Shader shader, Matrix4 model, Matrix4 view, Texture texture, Texture specularMap, Texture normalMap )
+		public void Render( Shader shader, Matrix4 model, Material material )
 		{
 			// on first run, prepare buffers
 			Prepare( shader );
 
-			// safety dance    \[T]/
-			GL.PushClientAttrib( ClientAttribMask.ClientVertexArrayBit );
-
-			// enable shader
-			GL.UseProgram(shader.ProgramId);
-
-			// enable textures
-			int texLoc = GL.GetUniformLocation( shader.ProgramId, "texAlbedo" );
-			GL.Uniform1( texLoc, 0 );
-			
-			int specLoc = GL.GetUniformLocation(shader.ProgramId, "texSpecular");
-			GL.Uniform1( specLoc, 1 );
-
-			int normLoc = GL.GetUniformLocation(shader.ProgramId, "texNormal");
-			GL.Uniform1(normLoc, 2);
-
-			GL.ActiveTexture(TextureUnit.Texture0);
-			GL.BindTexture(TextureTarget.Texture2D, texture.Id);
-
-			GL.ActiveTexture(TextureUnit.Texture1);
-			GL.BindTexture(TextureTarget.Texture2D, specularMap.Id);
-
 			// pass uniforms to vertex shader
 			shader.SetUniformMatrix4("model", model);
-
-			shader.SetUniformMatrix4("view", view);
-
-			shader.SetUniformVector3("lightDir", Vector3.Normalize(new Vector3(1, -1, -0.5f)));
-
-			shader.SetUniformVector3("cameraPos", Camera.Instance.Transform.Position);						
-
-			// enable position, normal and uv attributes
+			shader.SetUniformMatrix4("view", Camera.Instance.GetCameraMatrix());
+			shader.SetUniformMatrix4("projection", Camera.Instance.GetProjectionMatrix());
 			
-
 			// bind interleaved vertex data
-			GL.EnableClientState( ArrayCap.VertexArray );
 			GL.BindBuffer(BufferTarget.ArrayBuffer, _vertexBufferId);
 
 			GL.EnableVertexAttribArray(shader.AttributeVpos);			
@@ -148,10 +118,11 @@ namespace Template
 			GL.EnableVertexAttribArray(shader.AttributeVbtg);
 			GL.VertexAttribPointer(shader.AttributeVbtg, 3, VertexAttribPointerType.Float, false, 56, 44);
 
+			
 			// bind triangle index data and render
 			GL.BindBuffer( BufferTarget.ElementArrayBuffer, _triangleBufferId );
 			GL.DrawArrays( PrimitiveType.Triangles, 0, Triangles.Length * 3 );
-
+			
 			// bind quad index data and render
 			if( Quads.Length > 0 )
 			{
@@ -161,7 +132,6 @@ namespace Template
 
 			// restore previous OpenGL state
 			GL.UseProgram( 0 );
-			GL.PopClientAttrib();   //   \[T]/
 		}
 
 		// layout of a single vertex

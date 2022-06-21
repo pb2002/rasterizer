@@ -38,13 +38,13 @@ namespace Template
 			Prepare( shader );
 
 			// enable texture
-			int texLoc = GL.GetUniformLocation( shader.ProgramId, "pixels" );
+			int texLoc = GL.GetUniformLocation( shader.ProgramID, "pixels" );
 			GL.Uniform1( texLoc, 0 );
 			GL.ActiveTexture( TextureUnit.Texture0 );
 			GL.BindTexture( TextureTarget.Texture2D, textureId );
 
 			// enable shader
-			GL.UseProgram( shader.ProgramId );
+			GL.UseProgram( shader.ProgramID );
 
 			// enable position and uv attributes
 			GL.EnableVertexAttribArray( shader.AttributeVpos );

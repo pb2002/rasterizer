@@ -25,7 +25,7 @@ namespace Template
 			GL.TexParameter( TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Nearest );
 			GL.TexParameter( TextureTarget.Texture2D, TextureParameterName.TextureWrapS, (int)TextureWrapMode.Clamp );
 			GL.TexParameter( TextureTarget.Texture2D, TextureParameterName.TextureWrapT, (int)TextureWrapMode.Clamp );
-			GL.TexImage2D( TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba8, _width, _height, 0, PixelFormat.Rgba, PixelType.UnsignedByte, IntPtr.Zero );
+			GL.TexImage2D( TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba16f, _width, _height, 0, PixelFormat.Rgba, PixelType.HalfFloat, IntPtr.Zero );
 			GL.BindTexture( TextureTarget.Texture2D, 0 );
 			// bind color and depth textures to fbo
 			GL.Ext.GenFramebuffers( 1, out _fbo );

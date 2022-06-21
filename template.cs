@@ -30,7 +30,7 @@ namespace Template
 		static MyApplication _app;       // instance of the application
 		static bool _terminated = false; // application terminates gracefully when this is true
 
-		public OpenTkApp() : base(1600, 900, new GraphicsMode(32, 24, 8, 8)) { }
+		public OpenTkApp() { }
         protected override void OnLoad( EventArgs e )
 		{
 			// called during application initialization
@@ -78,7 +78,6 @@ namespace Template
 			GL.ClearColor( Color.Black );
 			GL.Enable( EnableCap.Texture2D );
 			GL.Disable( EnableCap.DepthTest );
-			GL.Disable(EnableCap.Multisample);
 			GL.Color3( 1.0f, 1.0f, 1.0f );
 			GL.BindTexture( TextureTarget.Texture2D, _screenId );
 			GL.TexImage2D( TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba,
@@ -100,7 +99,6 @@ namespace Template
 
 			// prepare for generic OpenGL rendering
 			GL.Enable( EnableCap.DepthTest );
-			GL.Enable( EnableCap.Multisample );
 			GL.Clear( ClearBufferMask.DepthBufferBit );
 			GL.Disable( EnableCap.Texture2D );
 			

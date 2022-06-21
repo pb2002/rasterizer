@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using OpenTK;
+using OpenTK.Input;
 
 namespace Template
 {
@@ -9,16 +10,17 @@ namespace Template
 		public Surface Screen;                     // background surface for printing etc.
 		private Object3D _sceneGraph;
 		const float Pi = 3.1415926535f;            // PI
-		float _a = 0;                              // teapot rotation angle
 		Stopwatch _timer;                          // timer for measuring frame duration
 		Shader _shader;                            // shader to use for rendering
 		Shader _postproc;                          // shader to use for post processing
-		Texture _wood, _woodSpecular, _woodNormal; // textures to use for rendering
 		RenderTarget _target;                      // intermediate render target
 		ScreenQuad _quad;                          // screen filling quad for post processing
-		bool _useRenderTarget = false;
+		bool _useRenderTarget = true;
 
 		private Mesh _mesh, _floor;
+
+		private float _frameDuration;
+
 		// initialize
 		public void Init()
 		{
@@ -29,25 +31,32 @@ namespace Template
 			_shader = new Shader( "../../shaders/vs.glsl", "../../shaders/fs.glsl" );
 
 			// textures from https://drive.google.com/drive/folders/1yiku3561M7zgQAsc82QHJVV3ELmDgbAw
-			_wood = new Texture( "../../assets/wood.jpg" );
-			_woodSpecular = new Texture("../../assets/wood_s.jpg");
-			_woodNormal = new Texture("../../assets/wood_n.jpg");
-			
-			_sceneGraph = new Object3D(Transform.Identity, null, null, null, null);
+
+			var woodMat = new Material(
+				new Texture("../../assets/wood.jpg"),
+				new Texture("../../assets/wood_n.jpg"),
+				new Texture("../../assets/wood_s.jpg"),
+				Vector3.One,
+				0.4f
+			);
+			var cobbleMat = new Material(
+				new Texture("../../assets/cobble_a.jpg"),
+				new Texture("../../assets/cobble_n.jpg"),
+				new Texture("../../assets/cobble_s.jpg"),
+				Vector3.One,
+				0.3f
+			);
+			_sceneGraph = new Object3D(Transform.Identity, null, null);
 			_sceneGraph.AddChild(new Object3D(
 				new Transform(Vector3.Zero, Quaternion.Identity, new Vector3(0.5f)),
 				_mesh,
-				_wood,
-				_woodSpecular,
-				_woodNormal
+				woodMat
 			));
 
 			_sceneGraph.AddChild(new Object3D(
 				new Transform(Vector3.Zero, Quaternion.Identity, new Vector3(4f)),
 				_floor,
-				_wood,
-				_woodSpecular,
-				_woodNormal
+				cobbleMat
 			));
 
 			// initialize stopwatch
@@ -67,18 +76,64 @@ namespace Template
 			Camera.SetAsCurrent(cam);
 			
 			_quad = new ScreenQuad();
+			
 		}
 
 		// tick for background surface
 		public void Tick()
 		{
-			float frameDuration = _timer.ElapsedMilliseconds;
+			_frameDuration = _timer.ElapsedMilliseconds;
 			_timer.Reset();
 			_timer.Start();
 
-			_sceneGraph.Transform.Rotation *= Quaternion.FromAxisAngle(new Vector3(0, 1, 0), 0.001f * frameDuration);
+			// _sceneGraph.Transform.Rotation *= Quaternion.FromAxisAngle(new Vector3(0, 1, 0), 0.001f * _frameDuration);
+			
+			CameraMovement();
 		}
 
+		public void CameraMovement()
+		{
+			KeyboardState keyboard = Keyboard.GetState();
+
+			if (keyboard.IsKeyDown(Key.W))
+			{
+				Camera.Instance.Transform.Position += Camera.Instance.ViewDirection * _frameDuration * 0.006f;
+			}
+			if (keyboard.IsKeyDown(Key.S))
+			{
+				Camera.Instance.Transform.Position -= Camera.Instance.ViewDirection * _frameDuration * 0.01f;
+			}
+			if (keyboard.IsKeyDown(Key.A))
+			{
+				Camera.Instance.Transform.Position -= Camera.Instance.Right * _frameDuration * 0.01f;
+			}
+			if (keyboard.IsKeyDown(Key.D))
+			{
+				Camera.Instance.Transform.Position += Camera.Instance.Right * _frameDuration * 0.01f;
+			}
+
+			if (keyboard.IsKeyDown(Key.Up))
+			{
+				Camera.Instance.Transform.Rotation *=
+					Quaternion.FromAxisAngle(Camera.Instance.Right, -_frameDuration * 0.0007f);
+			}
+			if (keyboard.IsKeyDown(Key.Down))
+			{
+				Camera.Instance.Transform.Rotation *=
+					Quaternion.FromAxisAngle(Camera.Instance.Right, _frameDuration * 0.0007f);
+			}
+			if (keyboard.IsKeyDown(Key.Left))
+			{
+				Camera.Instance.Transform.Rotation *=
+					Quaternion.FromAxisAngle(Vector3.UnitY, -_frameDuration * 0.0009f);	
+			}
+			if (keyboard.IsKeyDown(Key.Right))
+			{
+				Camera.Instance.Transform.Rotation *=
+					Quaternion.FromAxisAngle(Vector3.UnitY, _frameDuration * 0.0009f);
+			}
+		}
+		
 		// tick for OpenGL rendering code
 		public void RenderGL()
 		{
@@ -87,7 +142,7 @@ namespace Template
 			{
 				// enable render target
 				_target.Bind();
-
+				
 				_sceneGraph.Render(_shader);
 
 				// render quad
