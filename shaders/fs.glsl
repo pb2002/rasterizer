@@ -2,7 +2,6 @@
  
 // shader input
 in vec2 uv;			// interpolated texture coordinates
-in vec3 normal;			// interpolated normal
 in vec3 fragPos;
 in mat3 TBN;
 

@@ -1,3 +1,4 @@
+using System;
 using System.Diagnostics;
 using OpenTK;
 using OpenTK.Input;
@@ -9,7 +10,6 @@ namespace Template
 		// member variables
 		public Surface Screen;                     // background surface for printing etc.
 		private Object3D _sceneGraph;
-		const float Pi = 3.1415926535f;            // PI
 		Stopwatch _timer;                          // timer for measuring frame duration
 		Shader _shader;                            // shader to use for rendering
 		Shader _postproc;                          // shader to use for post processing
@@ -46,6 +46,7 @@ namespace Template
 				Vector3.One,
 				0.3f
 			);
+			
 			_sceneGraph = new Object3D(Transform.Identity, null, null);
 			_sceneGraph.AddChild(new Object3D(
 				new Transform(Vector3.Zero, Quaternion.Identity, new Vector3(0.5f)),
@@ -67,10 +68,10 @@ namespace Template
 			_postproc = new Shader( "../../shaders/vs_post.glsl", "../../shaders/fs_post.glsl" );
 			// load a texture
 			// create the render target
-			_target = new RenderTarget( Screen.Width, Screen.Height );
-			
+			_target = new RenderTarget( Screen.Width, Screen.Height, "../../assets/colorLut.png" );
+			//_target.lut = cobbleMat.AlbedoMap;
 			var cam = new Camera(
-				new Transform(new Vector3(0, 8.5f, 8.5f), Quaternion.FromAxisAngle(new Vector3(1,0,0), Pi / 4), Vector3.Zero), 
+				new Transform(new Vector3(0, 8.5f, 8.5f), Quaternion.FromAxisAngle(new Vector3(1,0,0), (float)Math.PI / 4), Vector3.Zero), 
 				Screen.Width, Screen.Height
 			);
 			Camera.SetAsCurrent(cam);
@@ -143,11 +144,13 @@ namespace Template
 				// enable render target
 				_target.Bind();
 				
+				_shader.SetUniformMatrix4("view", Camera.Instance.GetCameraMatrix());
+				_shader.SetUniformMatrix4("projection", Camera.Instance.GetProjectionMatrix());
 				_sceneGraph.Render(_shader);
 
 				// render quad
 				_target.Unbind();
-				_quad.Render( _postproc, _target.GetTextureId() );
+				_quad.Render( _postproc, _target.GetTextureId(), _target.GetColorLutId() );
 			}
 			else
 			{

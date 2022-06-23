@@ -8,7 +8,6 @@ layout( location = 3 ) in vec3 vTangent;
 layout( location = 4 ) in vec3 vBitangent;
 
 // shader output
-out vec3 normal;		// transformed vertex normal
 out vec3 fragPos;
 out vec2 uv;		
 out mat3 TBN;
@@ -22,15 +21,14 @@ void main()
 {
 	// transform vertex using supplied matrix
 	gl_Position = projection * view * model * vec4(vPosition, 1.0);
-	fragPos = vec3(model) * vPosition;
+	fragPos = (model * vec4(vPosition, 1.0)).xyz;
 	
 	mat3 modelVector = mat3(model);
-	normal = normalize(modelVector * vNormal);
 	uv = vUV;
 
     vec3 T = normalize(modelVector * vTangent);
     vec3 B = normalize(modelVector * vBitangent);
-    vec3 N = normalize(modelVector * vNormal.xyz);
+    vec3 N = normalize(modelVector * vNormal);
 
 	TBN = mat3(T, B, N);
 }

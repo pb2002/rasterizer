@@ -48,7 +48,8 @@ namespace Template
             var cm = Camera.Instance.GetCameraMatrix();
             shader.Use();
             Mat?.Upload(shader);
-            ObjectMesh?.Render(shader, WorldMatrix, Mat);
+            shader.SetUniformMatrix4("model", WorldMatrix);
+            ObjectMesh?.Render(shader);
             
             foreach (var c in _children)
             {

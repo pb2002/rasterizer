@@ -89,16 +89,10 @@ namespace Template
 		}
 
 		// render the mesh using the supplied shader and matrix
-		public void Render( Shader shader, Matrix4 model, Material material )
+		public void Render( Shader shader )
 		{
 			// on first run, prepare buffers
 			Prepare( shader );
-
-			// pass uniforms to vertex shader
-			shader.SetUniformMatrix4("model", model);
-			shader.SetUniformMatrix4("view", Camera.Instance.GetCameraMatrix());
-			shader.SetUniformMatrix4("projection", Camera.Instance.GetProjectionMatrix());
-			
 			// bind interleaved vertex data
 			GL.BindBuffer(BufferTarget.ArrayBuffer, _vertexBufferId);
 
