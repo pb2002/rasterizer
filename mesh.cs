@@ -33,8 +33,7 @@ namespace Template
 				ObjVertex v2 = Vertices[t.Index1];
 				ObjVertex v3 = Vertices[t.Index2];
 
-
-				//  \[T]/  DARK MAGIC, DO NOT EDIT  \[T]/  -------------------------
+				// \[T]/ Math \[T]/ -----------------------------------------------
 
 				Vector3 edge1 = v2.Vertex - v1.Vertex;
 				Vector3 edge2 = v3.Vertex - v1.Vertex;
@@ -49,10 +48,10 @@ namespace Template
 				tangent.Z = f * (deltaUV2.Y * edge1.Z - deltaUV1.Y * edge2.Z);
 				tangent.Normalize();
 
-				bitangent.X = f * (-deltaUV2.X * edge1.X + deltaUV1.X * edge2.X);
-				bitangent.Y = f * (-deltaUV2.X * edge1.Y + deltaUV1.X * edge2.Y);
-				bitangent.Z = f * (-deltaUV2.X * edge1.Z + deltaUV1.X * edge2.Z);
-				bitangent.Normalize();
+				bitangent.X = f * (deltaUV2.X * edge1.X - deltaUV1.X * edge2.X);
+				bitangent.Y = f * (deltaUV2.X * edge1.Y - deltaUV1.X * edge2.Y);
+				bitangent.Z = f * (deltaUV2.X * edge1.Z - deltaUV1.X * edge2.Z);
+				bitangent.Normalize();				
 				
 				// -----------------------------------------------------------------
 
@@ -69,63 +68,54 @@ namespace Template
 		// initialization; called during first render
 		public void Prepare( Shader shader )
 		{
-			if( _vertexBufferId == 0 )
-			{
-				// generate interleaved vertex data (uv/normal/position (total 8 floats) per vertex)
-				GL.GenBuffers( 1, out _vertexBufferId );
-				GL.BindBuffer( BufferTarget.ArrayBuffer, _vertexBufferId );
-				GL.BufferData( BufferTarget.ArrayBuffer, (IntPtr)(Vertices.Length * Marshal.SizeOf( typeof( ObjVertex ) )), Vertices, BufferUsageHint.StaticDraw );
+			// generate interleaved vertex data (uv/normal/position (total 8 floats) per vertex)
+			GL.GenBuffers(1, out _vertexBufferId);
+			GL.BindBuffer(BufferTarget.ArrayBuffer, _vertexBufferId);
+			GL.BufferData(BufferTarget.ArrayBuffer, (IntPtr)(Vertices.Length * Marshal.SizeOf(typeof(ObjVertex))), Vertices, BufferUsageHint.StaticDraw);
 
-				// generate triangle index array
-				GL.GenBuffers( 1, out _triangleBufferId );
-				GL.BindBuffer( BufferTarget.ElementArrayBuffer, _triangleBufferId );
-				GL.BufferData( BufferTarget.ElementArrayBuffer, (IntPtr)(Triangles.Length * Marshal.SizeOf( typeof( ObjTriangle ) )), Triangles, BufferUsageHint.StaticDraw );
+			// generate triangle index array
+			GL.GenBuffers(1, out _triangleBufferId);
+			GL.BindBuffer(BufferTarget.ElementArrayBuffer, _triangleBufferId);
+			GL.BufferData(BufferTarget.ElementArrayBuffer, (IntPtr)(Triangles.Length * Marshal.SizeOf(typeof(ObjTriangle))), Triangles, BufferUsageHint.StaticDraw);
 
-				// generate quad index array
-				GL.GenBuffers( 1, out _quadBufferId );
-				GL.BindBuffer( BufferTarget.ElementArrayBuffer, _quadBufferId );
-				GL.BufferData( BufferTarget.ElementArrayBuffer, (IntPtr)(Quads.Length * Marshal.SizeOf( typeof( ObjQuad ) )), Quads, BufferUsageHint.StaticDraw );
-			}
+			// generate quad index array
+			GL.GenBuffers(1, out _quadBufferId);
+			GL.BindBuffer(BufferTarget.ElementArrayBuffer, _quadBufferId);
+			GL.BufferData(BufferTarget.ElementArrayBuffer, (IntPtr)(Quads.Length * Marshal.SizeOf(typeof(ObjQuad))), Quads, BufferUsageHint.StaticDraw);
 		}
 
 		// render the mesh using the supplied shader and matrix
 		public void Render( Shader shader )
-		{
-			// on first run, prepare buffers
-			Prepare( shader );
-			// bind interleaved vertex data
+		{						
+			if (_vertexBufferId == 0) Prepare( shader );
+			
+			// Bind vertex buffer
 			GL.BindBuffer(BufferTarget.ArrayBuffer, _vertexBufferId);
 
+			// Enable vertex attribute arrays
 			GL.EnableVertexAttribArray(shader.AttributeVpos);			
-			GL.VertexAttribPointer(shader.AttributeVpos, 3, VertexAttribPointerType.Float, false, 56, 0);
-
 			GL.EnableVertexAttribArray(shader.AttributeVnrm);
-			GL.VertexAttribPointer(shader.AttributeVnrm, 3, VertexAttribPointerType.Float, true, 56, 12);
-
-			// link vertex attributes to shader parameters 
 			GL.EnableVertexAttribArray(shader.AttributeVuvs);
-			GL.VertexAttribPointer(shader.AttributeVuvs, 2, VertexAttribPointerType.Float, false, 56, 24);
-
 			GL.EnableVertexAttribArray(shader.AttributeVtng);
-			GL.VertexAttribPointer(shader.AttributeVtng, 3, VertexAttribPointerType.Float, false, 56, 32);
-
 			GL.EnableVertexAttribArray(shader.AttributeVbtg);
-			GL.VertexAttribPointer(shader.AttributeVbtg, 3, VertexAttribPointerType.Float, false, 56, 44);
 
-			
-			// bind triangle index data and render
-			GL.BindBuffer( BufferTarget.ElementArrayBuffer, _triangleBufferId );
+			// Link vertex attributes to shader parameters 
+			GL.VertexAttribPointer(shader.AttributeVpos, 3, VertexAttribPointerType.Float, false, 56, 0);
+			GL.VertexAttribPointer(shader.AttributeVnrm, 3, VertexAttribPointerType.Float, true, 56, 12);
+			GL.VertexAttribPointer(shader.AttributeVuvs, 2, VertexAttribPointerType.Float, false, 56, 24);
+			GL.VertexAttribPointer(shader.AttributeVtng, 3, VertexAttribPointerType.Float, false, 56, 32);
+			GL.VertexAttribPointer(shader.AttributeVbtg, 3, VertexAttribPointerType.Float, false, 56, 44);
+						
+			// Bind and render triangles
+			GL.BindBuffer( BufferTarget.ElementArrayBuffer, _triangleBufferId );			
 			GL.DrawArrays( PrimitiveType.Triangles, 0, Triangles.Length * 3 );
 			
-			// bind quad index data and render
+			// Bind and render quads
 			if( Quads.Length > 0 )
 			{
 				GL.BindBuffer( BufferTarget.ElementArrayBuffer, _quadBufferId );
 				GL.DrawArrays( PrimitiveType.Quads, 0, Quads.Length * 4 );
 			}
-
-			// restore previous OpenGL state
-			GL.UseProgram( 0 );
 		}
 
 		// layout of a single vertex

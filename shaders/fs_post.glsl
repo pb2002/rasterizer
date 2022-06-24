@@ -14,8 +14,9 @@ uniform sampler2D lut;
 // shader output
 out vec3 outputColor;
 
+// uncharted 2 tonemapper:
+// http://filmicworlds.com/blog/filmic-tonemapping-operators/
 
-// magie \[T]/
 float A = 0.15;
 float B = 0.50;
 float C = 0.10;
@@ -35,7 +36,7 @@ vec3 ColorGrading(vec3 color){
     // get lut cell
     float cell = color.g * CG_MAX;
 	float cell_l = floor(cell);
-	float cell_h = floor(cell);
+	float cell_h = ceil(cell);
 	
 	// pixel offset
 	float halfw = 0.5 / CG_W;
@@ -45,7 +46,7 @@ vec3 ColorGrading(vec3 color){
 	float lut_y = halfh + color.b * (CG_MAX / CG_COLORS);
 	
 	// sample twice to interpolate green channel
-	vec2 lut_pos_l = vec2(cell_l / CG_COLORS + lut_x, lut_y);
+	vec2 lut_pos_l = vec2(cell_l / 16 + lut_x, lut_y);
 	vec2 lut_pos_h = vec2(cell_h / CG_COLORS + lut_x, lut_y);
 	
 	vec3 col_l = texture(lut, lut_pos_l).rgb;
@@ -64,7 +65,7 @@ void main()
 	vec3 curr = Uncharted2Tonemap(exposureBias * c);
 	
 	vec3 whiteScale = 1.0/Uncharted2Tonemap(vec3(W));
-	vec3 color = curr * whiteScale;				
+	vec3 color = clamp(curr * whiteScale, 0, 1);				
 	
 	
 	outputColor = ColorGrading(color);

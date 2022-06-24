@@ -1,14 +1,12 @@
 ﻿#version 330
  
-// shader input
-layout( location = 0 ) in vec3 vPosition;		// untransformed vertex position
-layout( location = 1 ) in vec3 vNormal;		// untransformed vertex normal
-layout( location = 2 ) in vec2 vUV;			// vertex uv coordinate
-layout( location = 3 ) in vec3 vTangent;
-layout( location = 4 ) in vec3 vBitangent;
+in vec3 vPosition;
+in vec3 vNormal;	
+in vec2 vUV;
+in vec3 vTangent;
+in vec3 vBitangent;
 
-// shader output
-out vec3 fragPos;
+out vec3 fragPos; 
 out vec2 uv;		
 out mat3 TBN;
 
@@ -19,16 +17,20 @@ uniform mat4 model;
 // vertex shader
 void main()
 {
-	// transform vertex using supplied matrix
-	gl_Position = projection * view * model * vec4(vPosition, 1.0);
-	fragPos = (model * vec4(vPosition, 1.0)).xyz;
+	gl_Position = projection * view 
+		* model * vec4(vPosition, 1.0);
+		
+	fragPos = vec3(model * vec4(vPosition, 1.0));
 	
-	mat3 modelVector = mat3(model);
+	mat3 m3 = mat3(model);
 	uv = vUV;
 
-    vec3 T = normalize(modelVector * vTangent);
-    vec3 B = normalize(modelVector * vBitangent);
-    vec3 N = normalize(modelVector * vNormal);
+	// Tangent space matrix ----------------------
+	// https://learnopengl.com/Advanced-Lighting/Normal-Mapping
+    vec3 T = normalize(m3 * vTangent);
+    vec3 B = normalize(m3 * vBitangent);
+    vec3 N = normalize(m3 * vNormal);
 
 	TBN = mat3(T, B, N);
+	// -------------------------------------------
 }

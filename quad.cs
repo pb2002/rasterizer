@@ -39,27 +39,17 @@ namespace Template
 
 			// enable shader
 			GL.UseProgram( shader.ProgramID );
-			
+
 			// enable texture
-			int texLoc = GL.GetUniformLocation( shader.ProgramID, "pixels" );
-			GL.Uniform1( texLoc, 0 );
-			int lutLoc = GL.GetUniformLocation( shader.ProgramID, "lut" );
-			GL.Uniform1( lutLoc, 1 );
-			
-			GL.ActiveTexture( TextureUnit.Texture0 );
-			GL.BindTexture( TextureTarget.Texture2D, textureId );
-			
-			GL.ActiveTexture( TextureUnit.Texture1 );
-			GL.BindTexture( TextureTarget.Texture2D, colorLutId );
-			
+			shader.BindTexture("pixels", textureId, 0);
+			shader.BindTexture("lut", colorLutId, 1);
+
 			// enable position and uv attributes
 			GL.EnableVertexAttribArray( shader.AttributeVpos );
 			GL.EnableVertexAttribArray( shader.AttributeVuvs );
 
 			// bind interleaved vertex data
-			GL.EnableClientState( ArrayCap.VertexArray );
 			GL.BindBuffer( BufferTarget.ArrayBuffer, _vboVert );
-			GL.InterleavedArrays( InterleavedArrayFormat.T2fV3f, 20, IntPtr.Zero );
 
 			// link vertex attributes to shader parameters 
 			GL.VertexAttribPointer( shader.AttributeVpos, 3, VertexAttribPointerType.Float, false, 20, 0 );

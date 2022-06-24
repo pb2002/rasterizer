@@ -7,16 +7,11 @@ namespace Template
     public class Object3D
     {
         public Transform Transform;
-
         public Object3D Parent;
-
-        public Matrix4 WorldMatrix => (Transform.Matrix * Parent?.WorldMatrix) ?? Transform.Matrix;
 
         private List<Object3D> _children = new List<Object3D>();
 
-        public Mesh ObjectMesh;
-
-        public Material Mat;
+        public Matrix4 WorldMatrix => (Transform.Matrix * Parent?.WorldMatrix) ?? Transform.Matrix;
 
         public virtual void Update()
         {
@@ -26,11 +21,9 @@ namespace Template
             }   
         }
 
-        public Object3D(Transform transform, Mesh objectMesh, Material material)
+        public Object3D(Transform transform)
         {
-            Transform = transform;
-            ObjectMesh = objectMesh;
-            Mat = material;
+            Transform = transform;            
         }
 
         public Object3D[] GetChildren()
@@ -45,12 +38,6 @@ namespace Template
         }
         public virtual void Render(Shader shader)
         {
-            var cm = Camera.Instance.GetCameraMatrix();
-            shader.Use();
-            Mat?.Upload(shader);
-            shader.SetUniformMatrix4("model", WorldMatrix);
-            ObjectMesh?.Render(shader);
-            
             foreach (var c in _children)
             {
                 c.Render(shader);

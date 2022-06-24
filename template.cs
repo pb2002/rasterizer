@@ -5,6 +5,7 @@ using System.Threading;
 using OpenTK;
 using OpenTK.Graphics;
 using OpenTK.Graphics.OpenGL;
+using OpenTK.Input;
 
 // The template provides you with a window which displays a 'linear frame buffer', i.e.
 // a 1D array of pixels that represents the graphical contents of the window.
@@ -30,7 +31,6 @@ namespace Template
 		static MyApplication _app;       // instance of the application
 		static bool _terminated = false; // application terminates gracefully when this is true
 
-		public OpenTkApp() { }
         protected override void OnLoad( EventArgs e )
 		{
 			// called during application initialization
@@ -39,11 +39,14 @@ namespace Template
 			GL.Disable( EnableCap.DepthTest );
 			GL.Hint( HintTarget.PerspectiveCorrectionHint, HintMode.Nicest );			
 			ClientSize = new Size( 1600, 900 );
-			_app = new MyApplication();
+			
+			_app = new MyApplication();			
 			_app.Screen = new Surface( Width, Height );			
 			Sprite.Target = _app.Screen;
 			_screenId = _app.Screen.GenTexture();
-			_app.Init();
+			_app.Init();			
+			CursorVisible = false; // hides cursor
+		
 		}
 		protected override void OnUnload( EventArgs e )
 		{
@@ -64,6 +67,16 @@ namespace Template
 			// called once per frame; app logic
 			var keyboard = OpenTK.Input.Keyboard.GetState();
 			if( keyboard[OpenTK.Input.Key.Escape] ) _terminated = true;
+			CursorGrabbed = Focused; // capture the cursor
+		}
+		protected override void OnMouseMove(MouseMoveEventArgs e)
+		{
+			if (Focused) // check to see if the window is focused  
+			{
+				Mouse.SetPosition(X + Width / 2f, Y + Height / 2f);
+			}
+
+			base.OnMouseMove(e);
 		}
 		protected override void OnRenderFrame( FrameEventArgs e )
 		{

@@ -58,9 +58,13 @@ namespace Template
 		public void LoadLUT(string name)
 		{
 			if (File.Exists(name))
-			{
-				Bitmap bmp = new Bitmap(name);
-				lut = new Texture(bmp);
+			{				
+				lut = new Texture(name, 
+					minFilter: TextureMinFilter.Linear,
+					magFilter: TextureMagFilter.Linear,
+					wrapMode: TextureWrapMode.Clamp,
+					mipmaps: false, 
+					aniso: false);
 			}
 			else
 			{
@@ -80,7 +84,12 @@ namespace Template
 
 				bmp.Save(name, ImageFormat.Png);
 
-				lut = new Texture(bmp);
+				lut = new Texture(bmp,
+					minFilter: TextureMinFilter.Linear,
+					magFilter: TextureMagFilter.Linear,
+					wrapMode: TextureWrapMode.Clamp,
+					mipmaps: false,
+					aniso: false);
 			}
 		}
 		public int GetTextureId()

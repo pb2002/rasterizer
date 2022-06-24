@@ -1,6 +1,8 @@
 {
   "ExpandedNodes": [
-    ""
+    "",
+    "\\shaders"
   ],
+  "SelectedNode": "\\Transform.cs",
   "PreviewInSolutionExplorer": false
 }

@@ -10,28 +10,45 @@ namespace Template
 	{
 		// data members
 		public int ProgramID, VsId, FsId;
+
+		// Vertex attributes ------
 		public int AttributeVpos;
 		public int AttributeVnrm;
 		public int AttributeVuvs;
 		public int AttributeVtng;
 		public int AttributeVbtg;
-
+		// ------------------------
 		// constructor
-		public Shader( string vertexShader, string fragmentShader )
+		public Shader(string vertexShader, string fragmentShader)
 		{
+
 			// compile shaders
 			ProgramID = GL.CreateProgram();
-			Load( vertexShader, ShaderType.VertexShader, ProgramID, out VsId );
-			Load( fragmentShader, ShaderType.FragmentShader, ProgramID, out FsId );
-			GL.LinkProgram( ProgramID );
-			Console.WriteLine( GL.GetProgramInfoLog( ProgramID ) );
-			
+			Console.WriteLine($"Created shader program {ProgramID}.");
+			Load(vertexShader, ShaderType.VertexShader, ProgramID, out VsId);
+			Load(fragmentShader, ShaderType.FragmentShader, ProgramID, out FsId);
+
+			Console.Write($"Linking program {ProgramID}...");
+			GL.LinkProgram(ProgramID);
+
+			var log = GL.GetProgramInfoLog(ProgramID);
+			if (string.IsNullOrEmpty(log))
+			{
+				Console.WriteLine(" done.");
+			}
+			else
+			{
+				Console.WriteLine(" error!");
+				Console.WriteLine($"An error occured while linking program {ProgramID}:");
+				Console.WriteLine(log);
+			}
+
 			// get locations of shader parameters
-			AttributeVpos = GL.GetAttribLocation( ProgramID, "vPosition" );
-			AttributeVnrm = GL.GetAttribLocation( ProgramID, "vNormal" );
-			AttributeVuvs = GL.GetAttribLocation( ProgramID, "vUV" );
-			AttributeVtng = GL.GetAttribLocation( ProgramID, "vTangent");
-			AttributeVbtg = GL.GetAttribLocation( ProgramID, "vBitangent");
+			AttributeVpos = GL.GetAttribLocation(ProgramID, "vPosition");
+			AttributeVnrm = GL.GetAttribLocation(ProgramID, "vNormal");
+			AttributeVuvs = GL.GetAttribLocation(ProgramID, "vUV");
+			AttributeVtng = GL.GetAttribLocation(ProgramID, "vTangent");
+			AttributeVbtg = GL.GetAttribLocation(ProgramID, "vBitangent");
 		}
 
 		public void Use()
@@ -39,7 +56,7 @@ namespace Template
 			GL.UseProgram(ProgramID);
 		}
 		public void SetUniformFloat(string name, float value)
-        {
+		{
 			var loc = GL.GetUniformLocation(ProgramID, name);
 			GL.ProgramUniform1(ProgramID, loc, value);
 		}
@@ -47,7 +64,7 @@ namespace Template
 		{
 			var loc = GL.GetUniformLocation(ProgramID, name);
 			GL.ProgramUniform1(ProgramID, loc, value);
-		}		
+		}
 		public void SetUniformVector2(string name, Vector2 value)
 		{
 			var loc = GL.GetUniformLocation(ProgramID, name);
@@ -59,96 +76,62 @@ namespace Template
 			GL.ProgramUniform3(ProgramID, loc, value);
 		}
 		public void SetUniformVector4(string name, Vector4 value)
-        {
+		{
 			var loc = GL.GetUniformLocation(ProgramID, name);
 			GL.ProgramUniform4(ProgramID, loc, value);
 		}
 		public void SetUniformMatrix4(string name, Matrix4 value)
-        {
-            var loc = GL.GetUniformLocation(ProgramID, name);
+		{
+			var loc = GL.GetUniformLocation(ProgramID, name);
 			GL.ProgramUniformMatrix4(ProgramID, loc, false, ref value);
 		}
-		
+
+		public void BindTexture(string name, int texture, int t)
+		{
+			int texLoc = GL.GetUniformLocation(ProgramID, name);
+			GL.Uniform1(texLoc, t);
+			GL.ActiveTexture(TextureUnit.Texture0 + t);
+			GL.BindTexture(TextureTarget.Texture2D, texture);
+		}
+
 		public void BindTexture(string name, Texture texture, int t)
 		{
-			int texLoc = GL.GetUniformLocation( ProgramID, name );
-			GL.Uniform1( texLoc, t );
+			int texLoc = GL.GetUniformLocation(ProgramID, name);
+			GL.Uniform1(texLoc, t);
 			GL.ActiveTexture(TextureUnit.Texture0 + t);
 			GL.BindTexture(TextureTarget.Texture2D, texture.Id);
 		}
 
 		// loading shaders
-        void Load( String filename, ShaderType type, int program, out int id )
+		void Load(String filename, ShaderType type, int program, out int id)
 		{
+			Console.Write($"Loading shader '{filename}'...");
+
 			// source: http://neokabuto.blogspot.nl/2013/03/opentk-tutorial-2-drawing-triangle.html
-			id = GL.CreateShader( type );
+			id = GL.CreateShader(type);
+
+
 			using (StreamReader sr = new StreamReader(filename))
 			{
-				GL.ShaderSource( id, sr.ReadToEnd() );
+				var source = sr.ReadToEnd();
+				GL.ShaderSource(id, source);
 			}
-			GL.CompileShader( id );
-			GL.AttachShader( program, id );
-			Console.WriteLine( GL.GetShaderInfoLog( id ) );
+			Console.WriteLine(" done.");
+
+			Console.Write("    Compiling...");
+			GL.CompileShader(id);
+			GL.AttachShader(program, id);
+			var log = GL.GetShaderInfoLog(id);
+			if (string.IsNullOrEmpty(log))
+			{
+				Console.WriteLine(" done.");
+			}
+			else
+			{
+				Console.WriteLine(" error!");
+				Console.WriteLine("An error occured while compiling the shader:");
+				Console.WriteLine(log);
+			}
 		}
-        public void LoadUniformData<T>(T data) where T : struct
-        {
-	        FieldInfo[] fields = typeof(T).GetFields();
-	        foreach (FieldInfo field in fields)
-	        {
-		        var attr = field.GetCustomAttribute<ShaderUniformAttribute>();
-		        if (attr == null) continue;
-                
-		        var value = field.GetValue(data);
-
-		        switch (attr.Type)
-		        {
-			        case UniformType.Float:
-				        GL.ProgramUniform1(ProgramID, attr.Location, (float)value);
-				        break;
-			        case UniformType.Int:
-				        GL.ProgramUniform1(ProgramID, attr.Location, (int)value);
-				        break;
-			        case UniformType.Vec2:
-				        GL.ProgramUniform2(ProgramID, attr.Location, (Vector2)value);
-				        break;
-			        case UniformType.Vec3:
-				        GL.ProgramUniform3(ProgramID, attr.Location, (Vector3)value);
-				        break;
-			        case UniformType.Vec4:
-				        GL.ProgramUniform4(ProgramID, attr.Location, (Vector4)value);
-				        break;
-			        case UniformType.UniformM4x4:
-				        var m = (Matrix4) value;
-				        GL.ProgramUniformMatrix4(ProgramID, attr.Location, false, ref m);
-				        break;
-			        default:
-				        throw new ArgumentOutOfRangeException();
-		        }
-                
-                
-	        }
-        }
 	}
-	public enum UniformType
-    {
-        Float,
-        Int,
-        Vec2,
-        Vec3,
-        Vec4,
-        UniformM4x4
-    }
-
-	[AttributeUsage(AttributeTargets.Field)]
-    public class ShaderUniformAttribute : Attribute
-    {
-        public int Location;
-        public UniformType Type;
-
-        public ShaderUniformAttribute(int location, UniformType type)
-        {
-            Location = location;
-            Type = type;
-        }
-    }
 }
